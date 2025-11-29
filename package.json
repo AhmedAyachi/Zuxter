@@ -1,0 +1,17 @@
+{
+  "name": "winer",
+  "version": "0.0.1",
+  "description": "global state manager",
+  "main": "src/index.js",
+  "types": "src/index.d.ts",
+  "keywords": [
+    "redux",
+    "zustand",
+    "state",
+    "store",
+    "manage",
+    "global"
+  ],
+  "license": "MIT",
+  "author": "Ahmed Ayachi"
+}
