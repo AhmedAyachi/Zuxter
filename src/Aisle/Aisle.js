@@ -1,3 +1,4 @@
+import {mergeObjects,isObject} from "../Utils";
 
 
 export default class Aisle {
@@ -20,6 +21,14 @@ export default class Aisle {
     get key(){ return this.#key };
     get actions(){return this.#actions };
 
+    set(payload){
+        if(isObject(this.state)&&isObject(payload)){
+            mergeObjects(this.state,payload);
+        }
+        else this.state=payload;
+        this.#onChangeState();
+    }
+
     subscribe(listener){
         if(typeof(listener)==="function"){
             this.#listeners.add(listener);
@@ -28,14 +37,6 @@ export default class Aisle {
             }
         }
         else throw new Error("subscribe expects a function as listener");
-    }
-
-    set(payload){
-        if(payload&&(typeof(payload)==="object")&&(payload.constructor===Object)){
-            Object.assign(this.state,payload);
-        }
-        else this.state=payload;
-        this.#onChangeState();
     }
 
     #setActions(actions){

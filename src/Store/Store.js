@@ -1,4 +1,5 @@
 import Aisle from "../Aisle/Aisle";
+import {mergeObjects,isObject} from "../Utils";
 
 
 export default class Store {
@@ -9,7 +10,8 @@ export default class Store {
     #listeners=new Set();
 
     constructor(options){
-        const {aisles}=options;
+        const {state,aisles}=options;
+        if(isObject(state)) Object.assign(this.#state,state);
         if(Array.isArray(aisles)&&aisles.every(it=>it instanceof Aisle)){
             for(const aisle of aisles){
                 const {key,actions}=aisle;
@@ -19,10 +21,9 @@ export default class Store {
                     aisleRef[actionName]=(payload)=>{
                         actions[actionName](payload);
                         this.#onChangeState();
-                        this.#updateDevTools(actionName,payload);
+                        this.#updateDevTools(key+"/"+actionName,payload);
                     }
                 }
-                
                 Object.freeze(aisleRef);
             }
         }
@@ -38,17 +39,18 @@ export default class Store {
     }
 
     set(payload){
-        if(payload&&(typeof(payload)==="object")&&(payload.constructor===Object)){
+        if(isObject(payload)){
             for(const key in payload){
                 const value=payload[key];
                 const aisle=this.#aisleMap[key];
                 if(aisle) aisle.set(value);
+                else if(isObject(value)) mergeObjects(this.#state,value);
                 else this.#state[key]=value;
             }
+            this.#onChangeState();
+            this.#updateDevTools("store/set",payload);
         }
-        else this.state=payload;
-        this.#onChangeState();
-        this.#updateDevTools("Store.set",payload);
+        else throw new Error("store.set expects an object as payload");
     }
 
     subscribe(...params){

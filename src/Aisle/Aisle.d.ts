@@ -3,12 +3,15 @@
 export default class Aisle<
     Key extends string,
     State extends any,
-    Actions extends [string:(state:State,payload:any)=>{}],
-> extends Actions {
+    Actions extends {[name:string]:(state:State,payload?:any)=>void},
+>{
     constructor(options:AisleOptions<Key,State,Actions>);
 
-    readonly key:string;
-    readonly actions:Actions;
+    state:State;
+    readonly key:Key;
+    readonly actions:Actions&{
+        set(payload?:any):void;
+    };
 }
 
 interface AisleOptions<Key,State,Actions> {
