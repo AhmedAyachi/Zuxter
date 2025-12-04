@@ -19,11 +19,14 @@ export default class Aisle {
     }
 
     get key(){ return this.#key };
-    get actions(){return this.#actions };
+    get actions(){ return {...this.#actions} };
 
     set(payload){
         if(isObject(this.state)&&isObject(payload)){
             mergeObjects(this.state,payload);
+        }
+        else if(Array.isArray(this.state)&&Array.isArray(payload)){
+            this.state=[...payload];
         }
         else this.state=payload;
         this.#onChangeState();
@@ -45,8 +48,9 @@ export default class Aisle {
                 const action=actions[actionName]
                 if(action){
                     this.#actions[actionName]=(payload)=>{
-                        action(this.state,payload);
+                        const result=action(this.state,payload);
                         this.#onChangeState();
+                        return result;
                     }
                 }
                 else throw new Error("invalid action: "+actionName);

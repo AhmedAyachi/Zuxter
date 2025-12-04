@@ -38,8 +38,6 @@ export default class Store<State extends object,Aisles extends Aisle[]> {
     subscribe(aisleKeys:string[],listener:()=>void):()=>boolean;
 }
 
-
-
 type StoreState<State,Aisles extends Aisle[]>=State&{
     [Key in Aisles[number]["key"]]:Extract<Aisles[number],{key:Key}>["state"];
 };

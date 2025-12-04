@@ -17,13 +17,23 @@ export default class Store {
                 const {key,actions}=aisle;
                 this.#aisleMap[key]=aisle;
                 const aisleRef=this[key]={};
+                const setAisle=actions.set.bind(aisle);
+                delete actions.set;
                 for(const actionName in actions){
                     aisleRef[actionName]=(payload)=>{
-                        actions[actionName](payload);
+                        const result=actions[actionName](payload);
                         this.#onChangeState();
-                        this.#updateDevTools(key+"/"+actionName,payload);
+                        if(this.#devTools) this.#updateDevTools(key+"/"+actionName,payload);
+                        return result;
                     }
                 }
+                aisleRef.set=(payload)=>{
+                    setAisle(payload);
+                    if(this.#devTools) this.#updateDevTools(`${key}/set ${isObject(payload)?Object.keys(payload):""}`,payload);
+                },
+                Object.defineProperty(this.#state,key,{
+                    get:()=>this.#aisleMap[key].state,
+                });
                 Object.freeze(aisleRef);
             }
         }
@@ -32,9 +42,6 @@ export default class Store {
     }
 
     get state(){
-        for(const key in this.#aisleMap){
-            this.#state[key]=this.#aisleMap[key].state;
-        }
         return this.#state; 
     }
 
@@ -45,10 +52,11 @@ export default class Store {
                 const aisle=this.#aisleMap[key];
                 if(aisle) aisle.set(value);
                 else if(isObject(value)) mergeObjects(this.#state,value);
+                else if(Array.isArray(value)) this.#state[key]=[...value];
                 else this.#state[key]=value;
             }
             this.#onChangeState();
-            this.#updateDevTools("store/set",payload);
+            if(this.#devTools) this.#updateDevTools(`store/set ${Object.keys(payload)}`,payload);
         }
         else throw new Error("store.set expects an object as payload");
     }
@@ -79,6 +87,14 @@ export default class Store {
         else throw new Error("subscribe expects a function as listener");
     }
 
+    #getState(){
+        const state={...this.state};
+        for(const key in this.#aisleMap){
+            state[key]=this.#aisleMap[key].state;
+        }
+        return state;
+    }
+
     #onChangeState(){
         this.#listeners.forEach(listener=>{
             listener(this.state);
@@ -87,19 +103,17 @@ export default class Store {
     #connectToDevTools(){
         if(window.__REDUX_DEVTOOLS_EXTENSION__){
             const reduxDevTools=this.#devTools=window.__REDUX_DEVTOOLS_EXTENSION__?.connect({
-                name:"WineryStore",
+                name:"ZucStore",
                 trace:true,
             });
             if(reduxDevTools){
-                reduxDevTools.init(this.state);
+                reduxDevTools.init(this.#getState());
             }
         }
     }
     #updateDevTools(actionName,payload){
         const devTools=this.#devTools;
-        if(devTools){
-            devTools.send(actionName,this.state);
-        }
+        devTools.send(actionName,this.#getState());
     }
     
 
