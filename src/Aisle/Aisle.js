@@ -1,7 +1,7 @@
 import {mergeObjects,isObject} from "../Utils";
 
 
-export default class Aisle {
+export class ZuxAisle {
 
     #key=null;
     state=null;
@@ -65,4 +65,8 @@ export default class Aisle {
             listener(this.state);
         });
     }
+}
+
+export default function Aisle(options){
+    return new ZuxAisle(options);
 }

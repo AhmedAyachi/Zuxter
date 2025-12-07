@@ -1,4 +1,3 @@
-declare module "winer";
 
 
 export {default as Aisle} from "./Aisle/Aisle";

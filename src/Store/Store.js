@@ -1,8 +1,8 @@
-import Aisle from "../Aisle/Aisle";
+import {ZuxAisle} from "../Aisle/Aisle";
 import {mergeObjects,isObject} from "../Utils";
 
 
-export default class Store {
+class ZuxStore {
 
     #state={};
     #aisleMap={};
@@ -12,29 +12,9 @@ export default class Store {
     constructor(options){
         const {state,aisles}=options;
         if(isObject(state)) Object.assign(this.#state,state);
-        if(Array.isArray(aisles)&&aisles.every(it=>it instanceof Aisle)){
+        if(Array.isArray(aisles)&&aisles.every(it=>it instanceof ZuxAisle)){
             for(const aisle of aisles){
-                const {key,actions}=aisle;
-                this.#aisleMap[key]=aisle;
-                const aisleRef=this[key]={};
-                const setAisle=actions.set.bind(aisle);
-                delete actions.set;
-                for(const actionName in actions){
-                    aisleRef[actionName]=(payload)=>{
-                        const result=actions[actionName](payload);
-                        this.#onChangeState();
-                        if(this.#devTools) this.#updateDevTools(key+"/"+actionName,payload);
-                        return result;
-                    }
-                }
-                aisleRef.set=(payload)=>{
-                    setAisle(payload);
-                    if(this.#devTools) this.#updateDevTools(`${key}/set ${isObject(payload)?Object.keys(payload):""}`,payload);
-                },
-                Object.defineProperty(this.#state,key,{
-                    get:()=>this.#aisleMap[key].state,
-                });
-                Object.freeze(aisleRef);
+                this.#registerAisle(aisle);
             }
         }
         else throw new Error("the store aisles option must be an array of Aisle instances");
@@ -115,6 +95,31 @@ export default class Store {
         const devTools=this.#devTools;
         devTools.send(actionName,this.#getState());
     }
+    #registerAisle(aisle){
+        const {key,actions}=aisle;
+        this.#aisleMap[key]=aisle;
+        const aisleRef={};
+        const setAisle=actions.set.bind(aisle);
+        delete actions.set;
+        for(const actionName in actions){
+            aisleRef[actionName]=(payload)=>{
+                const result=actions[actionName](payload);
+                this.#onChangeState();
+                if(this.#devTools) this.#updateDevTools(key+"/"+actionName,payload);
+                return result;
+            }
+        }
+        aisleRef.set=(payload)=>{
+            setAisle(payload);
+            if(this.#devTools) this.#updateDevTools(`${key}/set ${isObject(payload)?Object.keys(payload):""}`,payload);
+        },
+        Object.defineProperty(this.#state,key,{
+            get:()=>this.#aisleMap[key].state,
+        });
+        Object.defineProperty(this,key,{
+            value:Object.freeze(aisleRef),
+        });
+    }
     
 
     #toInspectable(){
@@ -123,4 +128,8 @@ export default class Store {
     toString() { return String(this.#toInspectable()) };
     toJSON(){ return this.toString() };
     get [Symbol.toStringTag]() { return this.#toInspectable() };
+}
+
+export default function Store(options){
+    return new ZuxStore(options);
 }

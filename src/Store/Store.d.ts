@@ -1,21 +1,24 @@
-import Aisle from "../Aisle/Aisle";
+import {Aisle} from "../Aisle/Aisle";
 
 
-export default class Store<State extends object,Aisles extends Aisle[]> {
-
-    constructor(options:{
-        state?:State,
-        aisles?:Aisles,
-        /**
-         * @default false
-         */
-        devTools?:boolean,
-    });
+export default function Store<
+    State extends object,
+    Aisles extends Aisle[]
+>(options:{
+    state?:State,
+    aisles?:Aisles,
+    /**
+     * @default false
+     */
+    devTools?:boolean,
+}):{
 
     /**
      * The current store state
      */
-    readonly state:StoreState<State,Aisles>;
+    readonly state:State&{
+        [Key in Aisles[number]["key"]]:Extract<Aisles[number],{key:Key}>["state"];
+    };
 
     set(payload:any):void;
     /**
@@ -36,8 +39,6 @@ export default class Store<State extends object,Aisles extends Aisle[]> {
      * @returns an unsubscription-from-all function
      */
     subscribe(aisleKeys:string[],listener:()=>void):()=>boolean;
-}
-
-type StoreState<State,Aisles extends Aisle[]>=State&{
-    [Key in Aisles[number]["key"]]:Extract<Aisles[number],{key:Key}>["state"];
+}&{
+    readonly [Key in Aisles[number]["key"]]:Extract<Aisles[number],{key:Key}>["actions"];
 };
