@@ -10,7 +10,14 @@ export default function Store<
     /**
      * @default false
      */
-    devTools?:boolean,
+    withDevTools?:boolean,
+    /**
+     * Sets the Store.state behavior.
+     * 
+     * when true, the Store.state.aisleKey getter will return a structured clone of the store.
+     * @default false
+     */
+    immutable?:boolean,
 }):{
 
     /**
@@ -32,13 +39,13 @@ export default function Store<
      * @param aisleKey The aisle key to subscribe to.
      * @returns an unsubscription function.
      */
-    subscribe(aisleKey:string,listener:()=>void):()=>boolean;
+    subscribe(aisleKey:Aisles[number]["key"]|"*",listener:()=>void):()=>boolean;
     /**
      * Subscribes to multiple store aisles.
      * @param aisleKeys The aisle-keys to subscribe to.
      * @returns an unsubscription-from-all function
      */
-    subscribe(aisleKeys:string[],listener:()=>void):()=>boolean;
+    subscribe(aisleKeys:Aisles[number]["key"][],listener:()=>void):()=>boolean;
 }&{
     readonly [Key in Aisles[number]["key"]]:Extract<Aisles[number],{key:Key}>["actions"];
 };

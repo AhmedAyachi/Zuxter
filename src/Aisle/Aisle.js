@@ -1,34 +1,52 @@
 import {mergeObjects,isObject} from "../Utils";
+import {createDraft} from "immer";
 
 
 export class ZuxAisle {
 
     #key=null;
-    state=null;
+    #state=null;
     #actions={};
+    #onDidSet=null;
+    #onWillSet=null;
     #listeners=new Set();
+    immutable;
 
     constructor(options){
         const {key}=options;
         if(key&&typeof(key)==="string"){
             this.#key=key;
-            this.state=options.state;
+            this.#state=options.state;
+            if("immutable" in options){
+                this.immutable=Boolean(options.immutable);
+            }
+            const {onWillSet,onDidSet}=options;
+            if(typeof(onDidSet)==="function") this.#onDidSet=onDidSet;
+            if(typeof(onWillSet)==="function") this.#onWillSet=onWillSet;
             this.#setActions(options.actions);
         }
         else throw new Error("a non-empty string as an aisle key is required");
     }
 
     get key(){ return this.#key };
+    get state(){ 
+        if(this.immutable) return createDraft(this.#state);
+        else return this.#state;
+    };
     get actions(){ return {...this.#actions} };
 
     set(payload){
-        if(isObject(this.state)&&isObject(payload)){
-            mergeObjects(this.state,payload);
+        const onWillSet=this.#onWillSet;
+        onWillSet&&onWillSet("set",payload);
+        if(isObject(this.#state)&&isObject(payload)){
+            mergeObjects(this.#state,payload);
         }
-        else if(Array.isArray(this.state)&&Array.isArray(payload)){
-            this.state=[...payload];
+        else if(Array.isArray(this.#state)&&Array.isArray(payload)){
+            this.#state=[...payload];
         }
-        else this.state=payload;
+        else this.#state=payload;
+        const onDidSet=this.#onDidSet;
+        onDidSet&&onDidSet(payload);
         this.#onChangeState();
     }
 
@@ -43,17 +61,20 @@ export class ZuxAisle {
     }
 
     #setActions(actions){
+        const onDidSet=this.#onDidSet;
+        const onWillSet=this.#onWillSet;
         for(const actionName in actions){
             if(actionName!=="set"){
                 const action=actions[actionName]
                 if(action){
                     this.#actions[actionName]=(payload)=>{
-                        const result=action(this.state,payload);
+                        onWillSet&&onWillSet(actionName,payload);
+                        const result=action(this.#state,payload);
+                        onDidSet&&onDidSet(this.state);
                         this.#onChangeState();
                         return result;
                     }
-                }
-                else throw new Error("invalid action: "+actionName);
+                } else throw new Error("invalid action: "+actionName);
             }
             else throw new Error(`${this.#key} aisle: can't use 'set' as an action name.`);
         }
@@ -61,9 +82,13 @@ export class ZuxAisle {
         Object.freeze(this.#actions);
     }
     #onChangeState(){
-        this.#listeners.forEach(listener=>{
-            listener(this.state);
-        });
+        const listeners=this.#listeners;
+        if(listeners.size){
+            const {state}=this;
+            listeners.forEach(listener=>{
+                listener(state);
+            });
+        }
     }
 }
 

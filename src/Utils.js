@@ -1,6 +1,6 @@
 
 
-export const isObject=(x)=>x&&(typeof(x)==="object")&&(x.constructor===Object);
+export const isObject=(x)=>x&&(typeof(x)==="object")&&!Array.isArray(x);
 
 export const mergeObjects=(target,source)=>{
     for(const key in source){
