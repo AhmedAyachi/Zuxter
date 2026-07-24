@@ -19,15 +19,25 @@ export default function Store<
      */
     immutable?:boolean,
 }):{
-
     /**
      * The current store state
      */
-    readonly state:State&{
-        [Key in Aisles[number]["key"]]:Extract<Aisles[number],{key:Key}>["state"];
-    };
-
+    readonly state:StoreState<State,Aisles>;
+    /**
+     * Sets the store state.
+     * 
+     * Triggers subscription listeners.
+     */
     set(payload:any):void;
+    /**
+     * By using mutate, you get a direct access to the store state.
+     * Changes are shown in the redux devtools.
+     * @notice 
+     * Does not trigger subscription listeners.
+     * 
+     * Changes made to immutable aisles won't apply.
+     */
+    mutate(callback:(state:StoreState<State,Aisles>)=>{}):void;
     /**
      * 
      * @param listener The subscription callback.
@@ -49,3 +59,7 @@ export default function Store<
 }&{
     readonly [Key in Aisles[number]["key"]]:Extract<Aisles[number],{key:Key}>["actions"];
 };
+
+type StoreState<State,Aisles>=State&{
+    [Key in Aisles[number]["key"]]:Extract<Aisles[number],{key:Key}>["state"];
+}

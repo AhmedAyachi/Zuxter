@@ -1,9 +1,9 @@
 
 
 export default function Aisle<
-    Key extends string=any,
-    State extends any=any,
-    Actions extends {[name:string]:(state:State,payload?:any)=>any}=any,
+    Key extends string,
+    State extends any,
+    Actions extends {[name:string]:(state:State,payload?:any)=>any},
 >(options:{
     key:Key,
     state:State,

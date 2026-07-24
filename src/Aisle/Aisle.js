@@ -2,6 +2,10 @@ import {mergeObjects,isObject} from "../Utils";
 import {createDraft} from "immer";
 
 
+export default function Aisle(options){
+    return new ZuxAisle(options);
+}
+
 export class ZuxAisle {
 
     #key=null;
@@ -29,9 +33,10 @@ export class ZuxAisle {
     }
 
     get key(){ return this.#key };
-    get state(){ 
-        if(this.immutable) return createDraft(this.#state);
-        else return this.#state;
+    get state(){
+        const state=this.#state;
+        if(this.immutable&&state&&(typeof(state)==="object")) return createDraft(state);
+        else return state;
     };
     get actions(){ return {...this.#actions} };
 
@@ -81,6 +86,7 @@ export class ZuxAisle {
         this.#actions.set=(payload)=>this.set(payload);
         Object.freeze(this.#actions);
     }
+    
     #onChangeState(){
         const listeners=this.#listeners;
         if(listeners.size){
@@ -90,8 +96,4 @@ export class ZuxAisle {
             });
         }
     }
-}
-
-export default function Aisle(options){
-    return new ZuxAisle(options);
 }

@@ -3,6 +3,10 @@ import {mergeObjects,isObject} from "../Utils";
 import {createDraft} from "immer";
 
 
+export default function Store(options){
+    return new ZuxStore(options);
+}
+
 class ZuxStore {
 
     #state=null;
@@ -10,7 +14,6 @@ class ZuxStore {
     #devTools=null;
     #immutable=false;
     #listeners=new Set();
-    //#devToolsSendTimeout;
 
     constructor(options){
         const {state,aisles}=options;
@@ -57,9 +60,17 @@ class ZuxStore {
                 else this.#state[key]=value;
             }
             this.#onChangeState();
-            if(this.#devTools) this.#updateDevTools(`store/set ${Object.keys(payload)}`,payload);
+            if(this.#devTools) this.#updateDevTools(`store/set ${Object.keys(payload)}`);
         }
         else throw new Error("store.set expects an object as payload");
+    }
+
+    mutate(callback){
+        if(typeof(callback)!=="function"){
+            throw new Error("mutate expects a function as param");
+        }
+        callback(this.#state);
+        if(this.#devTools) this.#updateDevTools("store/mutate");
     }
 
     subscribe(...params){
@@ -97,8 +108,6 @@ class ZuxStore {
     }
 
     #onChangeState(){
-        /* clearTimeout(this.#devToolsSendTimeout);
-        this.#devToolsSendTimeout=null; */
         const listeners=this.#listeners;
         if(listeners.size){
             const {state}=this;
@@ -117,7 +126,7 @@ class ZuxStore {
             if(reduxDevTools) reduxDevTools.init(this.#getShallowStateCopy());
         }
     }
-    #updateDevTools(actionName,payload){
+    #updateDevTools(actionName){
         const devTools=this.#devTools;
         devTools.send(actionName,this.#getShallowStateCopy());
     }
@@ -137,14 +146,14 @@ class ZuxStore {
             aisleActionMap[actionName]=(payload)=>{
                 const result=actions[actionName](payload);
                 this.#onChangeState();
-                if(this.#devTools) this.#updateDevTools(key+"/"+actionName,payload);
+                if(this.#devTools) this.#updateDevTools(key+"/"+actionName);
                 return result;
             }
         }
         aisleActionMap.set=(payload)=>{
             setAisle(payload);
             if(this.#devTools){
-                this.#updateDevTools(`${key}/set ${isObject(payload)?Object.keys(payload):""}`,payload);
+                this.#updateDevTools(`${key}/set ${isObject(payload)?Object.keys(payload):""}`);
             }
         },
         Object.defineProperty(this.#state,key,{
@@ -162,8 +171,4 @@ class ZuxStore {
     toString() { return String(this.#toInspectable()) };
     toJSON(){ return this.toString() };
     get [Symbol.toStringTag]() { return this.#toInspectable() };
-}
-
-export default function Store(options){
-    return new ZuxStore(options);
 }
