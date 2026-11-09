@@ -1,13 +1,9 @@
-import {ZuxAisle} from "../Aisle/Aisle";
-import {mergeObjects,isObject} from "../Utils";
+import ZuxAisle,{internals} from "../Aisle/Aisle.js";
+import {mergeObjects,isObject} from "../Utils.js";
 import {createDraft} from "immer";
 
 
-export default function Store(options){
-    return new ZuxStore(options);
-}
-
-class ZuxStore {
+export default class Store {
 
     #state=null;
     #aisleMap={};
@@ -25,8 +21,7 @@ class ZuxStore {
             for(const aisle of aisles){
                 this.#registerAisle(aisle);
             }
-        }
-        else if(aisles!==undefined){
+        } else if(aisles!==undefined){
             throw new Error("the store aisles option must be an array of Aisle instances");
         }
         if(options.withDevTools) this.#connectToDevTools();
@@ -65,12 +60,31 @@ class ZuxStore {
         else throw new Error("store.set expects an object as payload");
     }
 
-    mutate(callback){
+    #mutationProxy;
+    mutate(callback,message){
         if(typeof(callback)!=="function"){
-            throw new Error("mutate expects a function as param");
+            throw new Error("mutate expects a function as first param");
         }
-        callback(this.#state);
-        if(this.#devTools) this.#updateDevTools("store/mutate");
+        if(!message) console.warn("performing store-mutation with no descriptive message");
+        if(!this.#mutationProxy) this.#mutationProxy=new Proxy({},{
+            get:(_,key)=>{
+                if(key in this.#aisleMap){
+                    return internals.getAisleState(this.#aisleMap[key]);
+                }
+                else if(key in this.#state) return this.#state[key];
+                else return undefined;
+            },
+            set:(_,key,value)=>{
+                if(key in this.#aisleMap){
+                    const aisle=this.#aisleMap[key];
+                    internals.mutateAisleState(aisle,value);
+                }
+                else this.#state[key]=value;
+                return true;
+            },
+        });
+        callback(this.#mutationProxy);
+        if(this.#devTools) this.#updateDevTools(message??"store/mutate");
     }
 
     subscribe(...params){

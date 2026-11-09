@@ -1,45 +1,48 @@
-import {Aisle} from "../Aisle/Aisle";
+import {AisleInstance} from "../Aisle/Aisle";
 
 
-export default function Store<
-    State extends object,
-    Aisles extends Aisle[]
->(options:{
-    state?:State,
-    aisles?:Aisles,
+export interface StoreOptions<State extends object,Aisles extends AisleInstance[]> {
+    state?:State;
+    aisles?:Aisles;
     /**
      * @default false
      */
-    withDevTools?:boolean,
+    withDevTools?:boolean;
     /**
-     * Sets the Store.state behavior.
-     * 
-     * when true, the Store.state.aisleKey getter will return a structured clone of the store.
+     * When true,the Store.state getter will return
+     * an immer draft of the store's state object.
+     * @notice the aisles immutable option value will default to this value.
      * @default false
      */
-    immutable?:boolean,
-}):{
+    immutable?:boolean;
+}
+
+export type StoreInstance<State extends object,Aisles extends AisleInstance[]>={
     /**
      * The current store state
      */
     readonly state:StoreState<State,Aisles>;
     /**
      * Sets the store state.
-     * 
+     *
      * Triggers subscription listeners.
      */
     set(payload:any):void;
     /**
      * By using mutate, you get a direct access to the store state.
+     *
      * Changes are shown in the redux devtools.
-     * @notice 
+     * 
+     * @param message
+     * An brief explanatory message to display in the redux devtools
+     * describing what this mutation does.
+     * @default message "store/mutate"
+     * 
+     * @notice
      * Does not trigger subscription listeners.
-     * 
-     * Changes made to immutable aisles won't apply.
      */
-    mutate(callback:(state:StoreState<State,Aisles>)=>{}):void;
+    mutate(callback:(state:StoreState<State,Aisles>)=>{},message?:string):void;
     /**
-     * 
      * @param listener The subscription callback.
      * @returns an unsubscription function.
      */
@@ -57,9 +60,18 @@ export default function Store<
      */
     subscribe(aisleKeys:Aisles[number]["key"][],listener:()=>void):()=>boolean;
 }&{
-    readonly [Key in Aisles[number]["key"]]:Extract<Aisles[number],{key:Key}>["actions"];
+    readonly [Key in Aisles[number]["key"]]:Extract<Aisles[number],{ key:Key }>["actions"];
 };
 
-type StoreState<State,Aisles>=State&{
-    [Key in Aisles[number]["key"]]:Extract<Aisles[number],{key:Key}>["state"];
+interface StoreConstructor {
+    new <State extends object,Aisles extends AisleInstance[]>(
+        options?:StoreOptions<State,Aisles>
+    ):StoreInstance<State,Aisles>;
 }
+
+type StoreState<State extends object,Aisles extends AisleInstance[]>=State&{
+    [Key in Aisles[number]["key"]]:Extract<Aisles[number],{ key:Key }>["state"];
+};
+
+declare const Store:StoreConstructor;
+export default Store;

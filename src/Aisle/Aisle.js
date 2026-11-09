@@ -1,12 +1,9 @@
-import {mergeObjects,isObject} from "../Utils";
+import {mergeObjects,isObject} from "../Utils.js";
 import {createDraft} from "immer";
 
 
-export default function Aisle(options){
-    return new ZuxAisle(options);
-}
-
-export class ZuxAisle {
+export const internals={};
+export default class Aisle {
 
     #key=null;
     #state=null;
@@ -43,6 +40,13 @@ export class ZuxAisle {
     set(payload){
         const onWillSet=this.#onWillSet;
         onWillSet&&onWillSet("set",payload);
+        this.#mutate(payload);
+        const onDidSet=this.#onDidSet;
+        onDidSet&&onDidSet(this.#state);
+        this.#onChangeState();
+    }
+
+    #mutate(payload){
         if(isObject(this.#state)&&isObject(payload)){
             mergeObjects(this.#state,payload);
         }
@@ -50,9 +54,6 @@ export class ZuxAisle {
             this.#state=[...payload];
         }
         else this.#state=payload;
-        const onDidSet=this.#onDidSet;
-        onDidSet&&onDidSet(payload);
-        this.#onChangeState();
     }
 
     subscribe(listener){
@@ -94,6 +95,13 @@ export class ZuxAisle {
             listeners.forEach(listener=>{
                 listener(state);
             });
+        }
+    }
+
+    static {
+        internals.getAisleState=(instance)=>instance.#state;
+        internals.mutateAisleState=(instance,payload)=>{
+            instance.#mutate(payload);
         }
     }
 }

@@ -1,10 +1,10 @@
 
 
-export default function Aisle<
+export interface AisleOptions<
     Key extends string,
     State extends any,
-    Actions extends {[name:string]:(state:State,payload?:any)=>any},
->(options:{
+    Actions extends Record<string,(state:State,payload?:any)=>any>,
+>{
     key:Key,
     state:State,
     actions?:Actions,
@@ -15,19 +15,32 @@ export default function Aisle<
      */
     immutable?:boolean,
     onDidSet?(state:State):void;
-    onWillSet?(action:keyof Actions,payload:any):void;
-}):Aisle<Key,State,Actions>;
+    onWillSet?<Key extends keyof Actions>(action:"set"|Key,payload?:any):void;
+} 
 
-export type Aisle<
+export interface AisleInstance<
     Key extends string=any,
     State extends any=any,
-    Actions extends {[name:string]:(payload?:any)=>any}=any,
->={
-    state:State;
+    Actions extends Record<string,(state:State,payload?:any)=>any>=any,
+>{
     readonly key:Key;
+    readonly state:State;
     readonly actions:{
         [Key in keyof Actions]:(payload?:any)=>any;
     }&{
         set(payload?:any):void;
     };
 }
+
+interface AisleConstructor {
+    new<
+        Key extends string,
+        State extends any,
+        Actions extends Record<string,(state:State,payload?:any)=>any>,
+    >(
+        options?:AisleOptions<Key,State,Actions>
+    ):AisleInstance<Key,State,Actions>;
+}
+
+declare const Aisle:AisleConstructor;
+export default Aisle;
