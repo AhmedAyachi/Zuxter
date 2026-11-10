@@ -77,10 +77,7 @@ const countAisle=new Aisle({
 });
 const store=Store({
     withDevTools:true,//redux devtools
-    aisles:[userAisle],
-    state:{
-        count:22,
-    },
+    aisles:[countAisle,userAisle],
 });
 store.user.setName("new name");
 store.count.increment();
@@ -140,7 +137,7 @@ store.state.groups.push(someNewGroup); //this line will push a new group to the 
 |-----|----|-----------|
 |key|string|the aisle key|
 |state|any|the aisle state|
-|immutable|boolean|overwrites the store immutable option otherwise it's inherited|
+|immutable|boolean|overrides the store immutable option for the aisle otherwise it's inherited|
 |onDidSet|(state):void|triggered when an aisle action is called|
 |onWillSet|(action:string,payload:any):void|triggered when an aisle action is called|
 
