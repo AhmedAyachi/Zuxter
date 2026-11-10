@@ -171,6 +171,7 @@ export default class Store {
         }
         aisleActionMap.set=(payload)=>{
             setAisle(payload);
+            this.#onChangeState();
             if(this.#devTools){
                 this.#updateDevTools(`${key}/set ${isObject(payload)?Object.keys(payload):""}`);
             }
