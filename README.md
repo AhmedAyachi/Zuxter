@@ -11,9 +11,9 @@ I created **Zuxter** to bring the best of the two worlds.
 What I did not like about redux:
 1. Providing new references to update the state which creates overhead.
 2.  Calling ***dispatch*** along with calling the *action*. 
-3. The inability to subscribe to reducers. Any state change triggers all subscriptions.
+3. The inability to subscribe to slices. Any state change triggers all subscriptions.
 
-But ***Redux***'s API for creating the store and the reducers was good and clean.
+But ***Redux***'s API for creating the store and the slices was good and clean.
 ***Zustand*** provided a simple approach for managing the store with no overhead but the API was just too verbose.
 
 ## How to use it ?
@@ -48,7 +48,7 @@ The ***set*** method is a general purpose setter that supports nested updates.
 ```
 
 ### Creating an Aisle
-An ***aisle*** is a redux reducer equivalent.
+An ***aisle*** is a redux slice equivalent.
 ```
 const userAisle=new Aisle({
     key:"user",
