@@ -11,13 +11,13 @@ I created **Zuxter** to bring the best of the two worlds.
 What I did not like about redux:
 1. Providing new references to update the state which creates overhead.
 2.  Calling ***dispatch*** along with calling the *action*. 
-3. The unability to subscribe to reducers. Any state change triggers all subscriptions.
+3. The inability to subscribe to reducers. Any state change triggers all subscriptions.
 
 But ***Redux***'s API for creating the store and the reducers was good and clean.
 ***Zustand*** provided a simple approach for managing the store with no overhead but the API was just too verbose.
 
 ## How to use it ?
-### Creating the store
+### Creating a store
 ```
 const store=new Store({
     withDevTools:true,//redux devtools
@@ -30,11 +30,11 @@ const store=new Store({
     },
 });
 store.set({
-    count:Store.state.count+1,
+    count:store.state.count+1,
     user:{name:"new user name"},
 });
 ```
-In the exmaple above, only the **count** and the **user.name** fields will get set.
+In the example above, only the **count** and the **user.name** fields will get set.
 The ***set*** method is a general purpose setter that supports nested updates.
 ```
 //New state:
@@ -75,7 +75,7 @@ const countAisle=new Aisle({
         },
     },
 });
-const store=Store({
+const store=new Store({
     withDevTools:true,//redux devtools
     aisles:[countAisle,userAisle],
 });
@@ -83,7 +83,7 @@ store.user.setName("new name");
 store.count.increment();
 store.count.decrement();
 ```
-No need to import anything to disptach an aisle action. You just use the simple following syntax :
+No need to import anything to dispatch an aisle action. You just use the simple following syntax :
 ```
 store.aisleKey.aisleAction(payload);
 ```
@@ -94,7 +94,7 @@ store.user.set({
     name:"new user name",
 });
 ```
-The aisle **set** method works exatly the same as the **store.set** method.
+The aisle **set** method works exactly the same as the **store.set** method.
 
 An aisle has a default **set** action that can't be overwritten.
 > Defining an action named **set** will throw an error.
@@ -164,7 +164,7 @@ const store=new Store({
     state:{
         business:{
             id:"user_business_id",
-            name:"some caffe",
+            name:"some cafe",
         },
     },
 });
@@ -262,3 +262,4 @@ new Aisle({
     },
 });
 ```
+The ***onWillSet*** option can block an action by throwing an error, but it can't change the payload. Payload handling belongs in the action.
