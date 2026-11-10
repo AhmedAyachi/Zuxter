@@ -65,7 +65,8 @@ export default class Store {
         if(typeof(callback)!=="function"){
             throw new Error("mutate expects a function as first param");
         }
-        if(!message) console.warn("performing store-mutation with no descriptive message");
+        const isValidMessage=message&&(typeof(message)==="string");
+        if(!isValidMessage) console.warn("performing store-mutation with no descriptive message");
         if(!this.#mutationProxy) this.#mutationProxy=new Proxy({},{
             get:(_,key)=>{
                 if(key in this.#aisleMap){
@@ -84,7 +85,7 @@ export default class Store {
             },
         });
         callback(this.#mutationProxy);
-        if(this.#devTools) this.#updateDevTools(message??"store/mutate");
+        if(this.#devTools) this.#updateDevTools(isValidMessage?message:"store/mutate");
     }
 
     subscribe(...params){
@@ -101,7 +102,11 @@ export default class Store {
                 else throw new Error(`no aisle with such key: '${key}'`);
             }
             return ()=>{
-                for(const unsubscriber of unsubscribers) unsubscriber();
+                let successful=true;
+                for(const unsubscriber of unsubscribers){
+                    successful&&=unsubscriber();
+                };
+                return successful;
             }
         }
         else if(typeof(listener)==="function"){

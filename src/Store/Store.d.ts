@@ -41,18 +41,23 @@ export type StoreInstance<State extends object,Aisles extends AisleInstance[]>={
      * @notice
      * Does not trigger subscription listeners.
      */
-    mutate(callback:(state:StoreState<State,Aisles>)=>{},message?:string):void;
+    mutate(callback:(state:StoreState<State,Aisles>)=>void,message?:string):void;
     /**
      * @param listener The subscription callback.
      * @returns an unsubscription function.
      */
-    subscribe(listener:()=>void):()=>boolean;
+    subscribe(listener:(state:State&{
+        readonly [Key in Aisles[number]["key"]]:Extract<Aisles[number],{key:Key}>["state"]
+    })=>void):()=>boolean;
     /**
      * Subscribes to a specific store aisle.
      * @param aisleKey The aisle key to subscribe to.
      * @returns an unsubscription function.
      */
-    subscribe(aisleKey:Aisles[number]["key"]|"*",listener:()=>void):()=>boolean;
+    subscribe<Key extends Aisles[number]["key"]>(
+        aisleKey:Key,
+        listener:(state:Extract<Aisles[number],{key:Key}>["state"])=>void,
+    ):()=>boolean;
     /**
      * Subscribes to multiple store aisles.
      * @param aisleKeys The aisle-keys to subscribe to.
@@ -60,7 +65,7 @@ export type StoreInstance<State extends object,Aisles extends AisleInstance[]>={
      */
     subscribe(aisleKeys:Aisles[number]["key"][],listener:()=>void):()=>boolean;
 }&{
-    readonly [Key in Aisles[number]["key"]]:Extract<Aisles[number],{ key:Key }>["actions"];
+    readonly [Key in Aisles[number]["key"]]:Extract<Aisles[number],{key:Key}>["actions"];
 };
 
 interface StoreConstructor {

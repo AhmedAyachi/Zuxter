@@ -72,10 +72,12 @@ export default class Aisle {
         for(const actionName in actions){
             if(actionName!=="set"){
                 const action=actions[actionName]
-                if(action){
+                if(typeof(action)==="function"){
                     this.#actions[actionName]=(payload)=>{
                         onWillSet&&onWillSet(actionName,payload);
-                        const result=action(this.#state,payload);
+                        const result=action(this.#state,payload,{
+                            setState:(value)=>{ this.#state=value },
+                        });
                         onDidSet&&onDidSet(this.state);
                         this.#onChangeState();
                         return result;
