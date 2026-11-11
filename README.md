@@ -122,7 +122,7 @@ store.state.groups.push(someNewGroup); //this line will push a new group to the 
 |state|plain object|the store initial state|
 |aisles|Aisle[]|the store aisles. You can access an aisle state using the **store.state.aisleKey** getter|
 |immutable|boolean|If true, the store state is mutable through store actions only and the store.state returns an immer draft instead of a state object reference.|
-|withDevTools|boolean|if true, it connects to the redux devtools extension|
+|withDevTools|boolean|if true, it connects to the redux devtools browser extension|
 
 ### Fields
 |Field|Type|Description|
@@ -222,7 +222,7 @@ const unsubscribeFromBothAisles=store.subscribe(["firstAisleKey","secondAisleKey
 ```
 > Zuxter does not check if a value has actually changed to trigger subscriptions and instead triggers them when an aisle action has been called as 90% of the time, the value is going to change.
 
-## The Aisle state onDidSet middleware
+## The Aisle onDidSet middleware
 The aisle has an ***onDidSet*** option that we can use to check if an aisle value has been correctly updated.
 ```
 new Aisle({
@@ -244,7 +244,7 @@ new Aisle({
 ```
 If your code accidentally used a non-string value to update that property, an error will be thrown, either through ***store.aisleKey.setSomeProperty***, ***store.aisleKey.set*** or even through ***store.set***. 
 
-## The Aisle state onWillSet middleware
+## The Aisle onWillSet middleware
 The aisle has an ***onWillSet*** option, a function to call before calling the action.
 
 ```
