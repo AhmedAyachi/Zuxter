@@ -122,6 +122,7 @@ store.state.groups.push(someNewGroup); //this line will push a new group to the 
 |state|plain object|the store initial state|
 |aisles|Aisle[]|the store aisles. You can access an aisle state using the **store.state.aisleKey** getter|
 |immutable|boolean|If true, the store state is mutable through store actions only and the store.state returns an immer draft instead of a state object reference.|
+|withDevTools|boolean|if true, it connects to the redux devtools extension|
 
 ### Fields
 |Field|Type|Description|
@@ -138,10 +139,10 @@ store.state.groups.push(someNewGroup); //this line will push a new group to the 
 |key|string|the aisle key|
 |state|any|the aisle state|
 |immutable|boolean|overrides the store immutable option for the aisle otherwise it's inherited|
-|onDidSet|(state):void|triggered when an aisle action is called|
-|onWillSet|(action:string,payload:any):void|triggered when an aisle action is called|
+|onDidSet|(state):void|triggered when an aisle action logic is called|
+|onWillSet|(action:string,payload:any):void|triggered when an aisle action logic is about to be called|
 
-> You are not supposed to use the Aisle directly but to add them to the store aisles option array.
+> You are not supposed to interact the Aisle class directly but to add the instance to the store aisles option array.
 
 ## Aisle vs The store state option
 
@@ -200,7 +201,6 @@ You can't listen to the changes made to only the business object. You need to co
 ## Store subscriptions
 A store subscription is a way to listen for store changes and call functions only when a mutation occurred.
 To listen for any store change:
-You can listen to any store change  though through:
 ```
 const unsubscribe=store.subscribe(state=>{
     state.user.name;// new user name
@@ -222,7 +222,7 @@ const unsubscribeFromBothAisles=store.subscribe(["firstAisleKey","secondAisleKey
 ```
 > Zuxter does not check if a value has actually changed to trigger subscriptions and instead triggers them when an aisle action has been called as 90% of the time, the value is going to change.
 
-## Aisle state check
+## The Aisle state onDidSet middleware
 The aisle has an ***onDidSet*** option that we can use to check if an aisle value has been correctly updated.
 ```
 new Aisle({
@@ -244,7 +244,7 @@ new Aisle({
 ```
 If your code accidentally used a non-string value to update that property, an error will be thrown, either through ***store.aisleKey.setSomeProperty***, ***store.aisleKey.set*** or even through ***store.set***. 
 
-## Aisle State Middleware
+## The Aisle state onWillSet middleware
 The aisle has an ***onWillSet*** option, a function to call before calling the action.
 
 ```
